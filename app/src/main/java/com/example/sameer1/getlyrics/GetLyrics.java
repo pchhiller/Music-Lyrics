@@ -15,6 +15,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,8 @@ import java.io.IOException;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+import static android.R.attr.filter;
 
 
 public class GetLyrics extends Fragment {
@@ -82,7 +85,7 @@ public class GetLyrics extends Fragment {
                 if(connected){
                     //Log.d("SONG", song);
                     TheTask to_execute= new TheTask();
-                    to_execute.execute("");
+                    to_execute.execute();
                 }
                 else{
                     Snackbar.make(v,"Please Connect to the Internet !!",Snackbar.LENGTH_SHORT).show();
@@ -112,10 +115,13 @@ public class GetLyrics extends Fragment {
                 SharedPreferences sharedPref = context.getSharedPreferences("myPrefs",Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 Toast.makeText(getActivity(), song + " ", Toast.LENGTH_SHORT).show();
+
                 editor.putString(getString(R.string.current_song), song);
                 editor.putString(getString(R.string.current_album), album);
                 editor.putString(getString(R.string.current_artist), artist);
                 editor.commit();
+                new TheTask().execute();
+                //To update lyrics automatically if music changes
             }
 
             //Log.v("IN On RECEIVE", artist + ":" + album + ":" + song);
@@ -131,6 +137,61 @@ public class GetLyrics extends Fragment {
         //iF.addAction("com.android.music.playstatechanged");
         iF.addAction("com.android.music.playbackcomplete");
         iF.addAction("com.android.music.queuechanged");
+        iF.addAction("com.android.music.metachanged");
+        iF.addAction("com.android.music.playstatechanged");
+        iF.addAction("com.android.music.playbackcomplete");
+        iF.addAction("com.android.music.queuechanged");
+
+        //HTC Music
+        iF.addAction("com.htc.music.playstatechanged");
+        iF.addAction("com.htc.music.playbackcomplete");
+        iF.addAction("com.htc.music.metachanged");
+        //MIUI Player
+        iF.addAction("com.miui.player.playstatechanged");
+        iF.addAction("com.miui.player.playbackcomplete");
+        iF.addAction("com.miui.player.metachanged");
+        //Real
+        iF.addAction("com.real.IMP.playstatechanged");
+        iF.addAction("com.real.IMP.playbackcomplete");
+        iF.addAction("com.real.IMP.metachanged");
+        //SEMC Music Player
+        iF.addAction("com.sonyericsson.music.playbackcontrol.ACTION_TRACK_STARTED");
+        iF.addAction("com.sonyericsson.music.playbackcontrol.ACTION_PAUSED");
+        iF.addAction("com.sonyericsson.music.TRACK_COMPLETED");
+        iF.addAction("com.sonyericsson.music.metachanged");
+        iF.addAction("com.sonyericsson.music.playbackcomplete");
+        iF.addAction("com.sonyericsson.music.playstatechanged");
+        //rdio
+        iF.addAction("com.rdio.android.metachanged");
+        iF.addAction("com.rdio.android.playstatechanged");
+        //Samsung Music Player
+        iF.addAction("com.samsung.sec.android.MusicPlayer.playstatechanged");
+        iF.addAction("com.samsung.sec.android.MusicPlayer.playbackcomplete");
+        iF.addAction("com.samsung.sec.android.MusicPlayer.metachanged");
+        iF.addAction("com.sec.android.app.music.playstatechanged");
+        iF.addAction("com.sec.android.app.music.playbackcomplete");
+        iF.addAction("com.sec.android.app.music.metachanged");
+        //Winamp
+        iF.addAction("com.nullsoft.winamp.playstatechanged");
+        iF.addAction("com.nullsoft.winamp.metachanged");
+        //Amazon
+        iF.addAction("com.amazon.mp3.playstatechanged");
+        iF.addAction("com.amazon.mp3.metachanged");
+        //Rhapsody
+        iF.addAction("com.rhapsody.playstatechanged");
+        //PowerAmp
+        iF.addAction("com.maxmpz.audioplayer.playstatechanged");
+        //will be added any....
+        //scrobblers detect for players (poweramp for example)
+        //Last.fm
+        iF.addAction("fm.last.android.metachanged");
+        iF.addAction("fm.last.android.playbackpaused");
+        iF.addAction("fm.last.android.playbackcomplete");
+        //A simple last.fm scrobbler
+        iF.addAction("com.adam.aslfms.notify.playstatechanged");
+        // Others
+        iF.addAction("net.jjc1138.android.scrobbler.action.MUSIC_STATUS");
+        iF.addAction("com.andrew.apollo.metachanged");
 
         getActivity().registerReceiver(mReceiver, iF);
     }
@@ -168,8 +229,10 @@ public class GetLyrics extends Fragment {
 
             SharedPreferences sharedPref = getActivity().getSharedPreferences("myPrefs",Context.MODE_PRIVATE);
             Song = sharedPref.getString(getString(R.string.current_song), "Man who cant be moved");
+
             Album = sharedPref.getString(getString(R.string.current_album), " ");
             Artist = sharedPref.getString(getString(R.string.current_artist), " ");
+
             //String Song = params[0];
             Song = Song.replaceAll("-"," ");
             Song = Song.replaceAll("_"," ");
